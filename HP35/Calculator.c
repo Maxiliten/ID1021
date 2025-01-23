@@ -1,112 +1,130 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 
-// Define the stack structure
+// Dynamic stack implementation from Dynamic_Stack.c
 typedef struct stack {
-    int top;       // Tracks the index of the top element
-    int size;      // Maximum capacity of the stack
-    int *array;    // Pointer to the dynamically allocated array
+    int top;                         // Index for top of stack
+    int size;                        // Size of stack
+    int *array;                      // Pointer for stack elements
 } stack;
 
 // Function to create a new stack
 stack *new_stack(int size) {
-    stack *stk = (stack *)malloc(sizeof(stack));       // Allocate memory for the stack structure
-    stk->array = (int *)malloc(size * sizeof(int));    // Allocate memory for the array
-    stk->size = size;                                  // Set the initial size
-    stk->top = -1;                                     // Initialize the stack as empty
+
+    //Allocate memory for array/stack
+    stack *stk = (stack *)malloc(sizeof(stack));
+    stk->array = (int *)malloc(size * sizeof(int));
+
+    //Create a local size variable and initiate top index to -1
+    stk->size = size;
+    stk->top = -1;
     return stk;
 }
 
-// Function to free the stack
-void free_stack(stack *stk) {
-    free(stk->array);                                  // Free the array memory
-    free(stk);                                         // Free the stack structure memory
-}
-
-// Push an element onto the dynamic stack
+// Push an element onto the stack and double size if stack is full
 void push(stack *stk, int val) {
-    if (stk->top == stk->size - 1) {                   // Check if the stack is full
-        int new_size = stk->size * 2;                  // Double the size of the stack
-        int *new_array = (int *)malloc(new_size * sizeof(int)); // Allocate a new array
-        for (int i = 0; i <= stk->top; i++) {          // Copy old elements to the new array
+
+    //Check if stack is full and create new bigger stack with the old elements
+    if (stk->top == stk->size - 1) { 
+        int new_size = stk->size * 2; 
+        int *new_array = (int *)malloc(new_size * sizeof(int));
+        printf("Increasing Stack Size\n");
+        for (int i = 0; i <= stk->top; i++) { 
             new_array[i] = stk->array[i];
         }
-        free(stk->array);                              // Free the old array memory
-        stk->array = new_array;                        // Update the pointer to the new array
-        stk->size = new_size;                          // Update the stack size
-        printf("Stack resized to %d\n", new_size);     // Inform the user about the resize
+
+        // Free old memory
+        free(stk->array);
+        //Change pointer and size to the new array
+        stk->array = new_array; 
+        stk->size = new_size; 
     }
-    stk->array[++stk->top] = val;                      // Increment top and add the value
+    //Increment and push value on top of stack
+    stk->array[++stk->top] = val;
 }
 
-// Pop an element from the dynamic stack
+// Pop an element from the stack, shrinking if necessary
 int pop(stack *stk) {
-    if (stk->top == -1) {                              // Check if the stack is empty
-        printf("Stack underflow! Returning 0\n");
-        return 0;                                      // Return 0 as a default value
+
+    //Check if stack is empty
+    if (stk->top == -1) {
+        printf("Stack Empty\n");
+        return 0;
     }
-    int val = stk->array[stk->top--];                  // Retrieve the value and decrement top
-    if (stk->top < stk->size / 4 && stk->size > 4) {   // Shrink the stack if underutilized
-        int new_size = stk->size / 2;                  // Halve the size of the stack
-        int *new_array = (int *)malloc(new_size * sizeof(int)); // Allocate a smaller array
-        for (int i = 0; i <= stk->top; i++) {          // Copy elements to the smaller array
+    //Take value of top
+    int val = stk->array[stk->top--];
+    
+    //Check if stack is half empty and bigger than 4 ints and create smaller array and copy old elements.
+    if (stk->top < stk->size / 2 && stk->size > 4) {
+        int new_size = stk->size / 2;
+        int *new_array = (int *)malloc(new_size * sizeof(int));
+        for (int i = 0; i <= stk->top; i++) {
             new_array[i] = stk->array[i];
         }
-        free(stk->array);                              // Free the old array memory
-        stk->array = new_array;                        // Update the pointer to the new array
-        stk->size = new_size;                          // Update the stack size
-        printf("Stack resized to %d\n", new_size);     // Inform the user about the resize
+
+        // Free old memory
+        free(stk->array);
+        //Change pointer and size to new smaller stack
+        stk->array = new_array;
+        stk->size = new_size;
+        printf("Reducing Stack Size\n");
     }
-    return val;                                        // Return the popped value
+
+    //Return value of top
+    return val;
 }
 
-// Main function for the calculator
+// Framework for the calculator based on the PDF skeletal code
 int main() {
-    stack *stk = new_stack(4);                         // Initialize the dynamic stack with size 4
-    printf("HP-35 Pocket Calculator (Reverse Polish Notation)\n");
-    printf("Enter numbers and operators (+, -, *, /). Press ENTER to exit.\n");
+    stack *stk = new_stack(4);  // Use the dynamic stack implementation
+    printf("HP-35 pocket calculator\n");
 
-    char buffer[10];                                   // Buffer for user input
-    int run = 1;                                       // Loop control variable
+    int n = 10;  // Size of input buffer
+    char *buffer = malloc(n);
+    bool run = true;
 
     while (run) {
         printf(" > ");
-        fgets(buffer, 10, stdin);                      // Read input from the user
+        fgets(buffer, n, stdin);  // Read user input
 
-        if (strcmp(buffer, "\n") == 0) {               // Quit if input is just ENTER
-            run = 0;
-        } else if (strcmp(buffer, "+\n") == 0) {       // Perform addition
+        if (strcmp(buffer, "\n") == 0) {
+            run = false;  // Exit loop on empty input
+        } 
+        else if (strcmp(buffer, "+\n") == 0) {
             int a = pop(stk);
             int b = pop(stk);
             push(stk, a + b);
-        } else if (strcmp(buffer, "-\n") == 0) {       // Perform subtraction
+        } 
+        else if (strcmp(buffer, "-\n") == 0){
             int a = pop(stk);
             int b = pop(stk);
-            push(stk, b - a);                          // Note: Order matters for subtraction
-        } else if (strcmp(buffer, "*\n") == 0) {       // Perform multiplication
-            int a = pop(stk);
-            int b = pop(stk);
-            push(stk, a * b);
-        } else if (strcmp(buffer, "/\n") == 0) {       // Perform division
-            int a = pop(stk);
-            int b = pop(stk);
-            if (a != 0) {
-                push(stk, b / a);                      // Note: Order matters for division
-            } else {
-                printf("Division by zero error\n");
-                push(stk, b);                          // Restore the second operand
-            }
-        } else {                                       // Assume the input is a number
-            int val = atoi(buffer);                   // Convert input to an integer
-            push(stk, val);                           // Push the number onto the stack
+            push(stk, b - a);
         }
-    }
+        else if (strcmp(buffer, "*\n") == 0){
+            int a = pop(stk);
+            int b = pop(stk);
+            push(stk, b * a);
+        }
+        else if (strcmp(buffer, "/\n") == 0){
+            int a = pop(stk);
+            int b = pop(stk);
+            push(stk, b / a);
+        }
+        
+            /* Add code here for additional operations */
+        else {
+            int val = atoi(buffer);  // Convert input to an integer
+            push(stk, val);
+        }
 
-    printf("The result is: %d\n", pop(stk));           // Output the final result
-    printf("Goodbye! I love reverse Polish notation, don't you?\n");
-    free_stack(stk);                                   // Free the stack memory
+    }
+    printf("The result is: %d\n\n", pop(stk));  // Print the result
+    printf("I love reversed Polish notation, don't you?\n");
+
+    free(buffer);         // Free allocated memory
+    free(stk->array);     // Free stack memory
+    free(stk);
     return 0;
 }
-
-

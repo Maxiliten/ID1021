@@ -2,40 +2,48 @@
 #include <stdlib.h>
 
 typedef struct stack {
-    int top;                         // Index of the top element
-    int size;                        // Maximum size of the stack
-    int *array;                      // Pointer to stack elements
+    int top;                         // Index for top of stack
+    int size;                        // Size of stack
+    int *array;                      // Pointer for stack elements
 } stack;
 
 // Function to create a new stack
 stack *new_stack(int size) {
+
+    //Allocate memory for array/stack
     stack *stk = (stack *)malloc(sizeof(stack));
     stk->array = (int *)malloc(size * sizeof(int));
 
-    stk->size = size;                       /*Added: A size as a independent variable from the structure so we do not need to rely on the original size, 
-                                            making manipulation of size easier with push and pop.*/
-
-    stk->top = -1;                             // Added: A starting point for the poiner to know where the current top is or if empty as -1 = 0 elements, 0 = 1 element, 1 = 2 elements.. etc.
-
+    //Create a local size variable and initiate top index to -1
+    stk->size = size;
+    stk->top = -1;
     return stk;
 }
 
 // Function to push an element onto the stack
 void push(stack *stk, int val) {
-    if (stk->top == stk->size - 1) {                        //Check if the stack is full by checking top value is equal to the size of the array - 1 hence full.
-        printf("Stack overflow! Cannot push %d\n", val);    //Prints out error message about overflow to inform user about error.
+
+    //Check if stack is full and give warning
+    if (stk->top == stk->size - 1) {
+        printf("Stack overflow! Cannot push %d\n", val);
         return;
     }
-    stk->array[++stk->top] = val;                           // Increment top to move pointer and assign the value to the stack.
+
+    //Increment top index and assign value to top of stack
+    stk->array[++stk->top] = val;
 }
 
 // Function to pop an element from the stack
 int pop(stack *stk) {
-    if (stk->top == -1) {                           //Check if stack is empty, by checking if top == -1 indicating empty stack.
-        printf("Stack underflow! Returning 0\n");   //Send out error message to inform user.
-        return 0;                                   // Default value for an empty stack.
+
+    //Check if stack is empty and give warning
+    if (stk->top == -1) {
+        printf("Stack underflow! Returning 0\n");
+        return 0;
     }
-    return stk->array[stk->top--];                  // Return top value and decrement top
+
+    //return value and decrement top index
+    return stk->array[stk->top--];
 }
 
 // Test the static stack
@@ -55,9 +63,3 @@ int main() {
 
     return 0;
 }
-
-/* When trying to push on more values, that is overfilling the stack. It would write in the adjecent memory and not give a notice as C does not perform rutine checks like Java.
-In my case it worked without crashes, or irregular behaviour of the program, however a tested a few times and it still worked. But with more complex programs or just by chance it
-could overwrite important memory that can cause the program to crash, corrupt the files progressively for future uses, or cause weird behaviour overall. I instead implemented error
-messages like overflow and underflow to inform the users of the program about this. So pushing an overstacked stack with more numbers would cause overwritting onto adjecent memories
-while poping an empty stack would pop adjecent memory outside the stack in the same manner. Hence I put in the error messages as this could prove detrimental*/
